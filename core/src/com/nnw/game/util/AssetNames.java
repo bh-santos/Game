@@ -11,13 +11,14 @@ public class AssetNames {
         //MENU IMAGES
         public static final String MAIN_MENU_BACKGROUND_IMAGE ="backgroundImages/mainMenuBackground.png";
 
-        public static final String MAIN_MENU_BACKGROUND_OPTIONAL_IMAGE ="backgroundImages/mainMenuOptionalBackground.png";
+        public static final String MAIN_MENU_BACKGROUND_OPTIONAL_IMAGE ="backgroundImages/mainMenuOptionalBackground4.gif";
 
         public static final String SECONDARY_MENU_BACKGROUND_IMAGE ="backgroundImages/initGameMenuBackground.png";
 
         //NARUTO LOGO
         public static final String NARUTO_LOGO = "icons/logo/narutoLogo.png";
 
+        public static final String TSUKI_NO_ME_LOGO = "icons/logo/tsukiNoMe.png";
         //MOUSE ICON
         public static final String MOUSE_ICON = "icons/mouseIcons/mouseIconKunai.png";
 
