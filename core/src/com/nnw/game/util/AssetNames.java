@@ -117,4 +117,10 @@ public class AssetNames {
         public static final String HOVER_ITEM_MENU_SOUND ="sounds/menuSound.wav";
     }
 
+    public static class Fonts{
+        public static final String MENU_LOGO_FONT = "fonts/narutoLogo/njNaruto.ttf";
+        public static final String MENU_ITEMS_FONT = "fonts/paintyPaint/paintP.TTF";
+
+    }
+
 }

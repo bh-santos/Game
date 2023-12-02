@@ -12,12 +12,13 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.nnw.game.ui.MainMenu;
 import com.nnw.game.util.AssetNames;
+import com.nnw.game.util.UIType;
 
 public class NNWGame extends Game {
 
 	@Override
 	public void create () {
-		MainMenu mainMenu = new MainMenu(this);
+		MainMenu mainMenu = new MainMenu(this, UIType.MAIN_MENU);
 		setScreen(mainMenu);
 
 
