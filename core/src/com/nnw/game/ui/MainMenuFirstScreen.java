@@ -17,18 +17,14 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.nnw.game.util.UIType;
 import lombok.Data;
 
 
-import static com.nnw.game.util.AssetNames.Fonts.MENU_ITEMS_FONT;
-import static com.nnw.game.util.AssetNames.Fonts.MENU_LOGO_FONT;
+import static com.nnw.game.util.AssetNames.Fonts.*;
 import static com.nnw.game.util.AssetNames.Sounds.*;
 import static com.nnw.game.util.AssetNames.Textures.*;
 import static com.nnw.game.util.Settings.GAME_HEIGHT;
@@ -48,7 +44,6 @@ public class MainMenuFirstScreen implements Screen {
     private Animation<TextureRegion> gifAnimation;
     private float stateTime;
     private TweenManager tweenManager;
-    private TweenManager tweenManager2;
     private Label logoText;
     private Group animationGroup;
     private AnimatedBackgroundMainMenu animatedBackgroundMainMenu;
@@ -57,11 +52,12 @@ public class MainMenuFirstScreen implements Screen {
     private Sound hoverSound;
     private Sound backgroundSound;
     private TextButton.TextButtonStyle startGameButtonTextStyle;
-    private BitmapFont startGameButtonText;
+    private BitmapFont startGameFont;
     private FreeTypeFontGenerator.FreeTypeFontParameter fontButtonParameter;
     private FreeTypeFontGenerator.FreeTypeFontParameter fontLogoParameter;
     private BitmapFont fontLogo;
     private Label.LabelStyle titleTextStyle;
+    private LoginWindow loginWindow;
 
 
     public MainMenuFirstScreen(Game game, UIType type){
@@ -71,7 +67,6 @@ public class MainMenuFirstScreen implements Screen {
     @Override
     public void show() {
         initStage();
-        initOrganizers();
         initAudioSystem();
         initUIConfig();
         initTextures();
@@ -79,18 +74,80 @@ public class MainMenuFirstScreen implements Screen {
         initAnimations();
         generateFonts();
         createMenuItems();
-        configureMenuItemsPositions();
+        configureMenuItems();
         initMenuButtonsListeners();
+        initOrganizers();
         addActorsToStage();
         initTween();
 
     }
 
+
+
+    @Override
+    public void render(float delta) {
+        Gdx.gl.glClearColor(255, 255, 255, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+
+
+        stateTime += delta;
+
+
+        // Obtenha o frame atual da animação
+        /*menuStage.getBatch().begin();
+        menuStage.getBatch().draw(gifAnimation.getKeyFrame(stateTime),0f,0f);
+        menuStage.getBatch().end();*/
+        tweenManager.update(delta);
+        menuStage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 60f));
+        menuStage.draw();
+
+    }
+
+
+
+
+    @Override
+    public void resize(int width, int height) {
+
+    }
+
+    @Override
+    public void pause() {
+
+    }
+
+    @Override
+    public void resume() {
+
+    }
+
+    @Override
+    public void hide() {
+
+    }
+
+    @Override
+    public void dispose() {
+        uiConfigs.dispose();
+        startGameFont.dispose();
+        fontGeneratorLogo.dispose();
+        menuStage.getBatch().dispose();
+        hoverSound.dispose();
+        clickSound.dispose();
+        backgroundSound.dispose();
+        fontLogo.dispose();
+        gameLogoTexture.dispose();
+        fontGeneratorItems.dispose();
+        loginWindow.dispose();
+
+    }
+
+//Configuração de todos os itens do menu.
     private void initStage(){
         menuStage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
         Gdx.input.setInputProcessor(menuStage);
     }
-
     private void initOrganizers(){
         animationGroup = new Group();
     }
@@ -107,24 +164,19 @@ public class MainMenuFirstScreen implements Screen {
         backgroundSound.play();
         backgroundSound.loop();
     }
-
     public void initTextures(){
         gameLogoTexture = new Texture(NARUTO_LOGO);
     }
-
     public void initAnimations(){
         gifAnimation = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP,Gdx.files.internal(MAIN_MENU_FIRST_SCREEN_BACKGROUND).read());
         animatedBackgroundMainMenu = new AnimatedBackgroundMainMenu(gifAnimation);
     }
-
     public void initImages(){
         gameLogoImage = new Image(gameLogoTexture);
     }
-
     private void initUIConfig(){
         uiConfigs = new Skin();
     }
-
     private void generateFonts(){
         //criando a fonte do logo do menu
         fontGeneratorLogo =new FreeTypeFontGenerator(Gdx.files.internal(MENU_LOGO_FONT));
@@ -153,36 +205,42 @@ public class MainMenuFirstScreen implements Screen {
         fontButtonParameter.shadowColor = Color.DARK_GRAY;
         fontButtonParameter.shadowOffsetX = 4;
         fontButtonParameter.shadowOffsetY = 4;
-        startGameButtonText = fontGeneratorItems.generateFont(fontButtonParameter);
+        startGameFont = fontGeneratorItems.generateFont(fontButtonParameter);
 
         //ajustando as configurações de estilo do botão
         startGameButtonTextStyle = new TextButton.TextButtonStyle();
-        startGameButtonTextStyle.font = startGameButtonText;
+        startGameButtonTextStyle.font = startGameFont;
         startGameButtonTextStyle.overFontColor = Color.DARK_GRAY;
         startGameButtonTextStyle.downFontColor = Color.RED;
         uiConfigs.add("start_game_text",startGameButtonTextStyle);
-    }
 
+    }
     private void createMenuItems(){
         //criando o texto do logo menu;
         logoText = new Label("Ninja War",uiConfigs,"title_text");
         //criando o botão
         startGameTextButton = new TextButton("START GAME",uiConfigs,"start_game_text");
+        //criando tela de login
+        loginWindow = new LoginWindow();
     }
-
-    private void configureMenuItemsPositions(){
+    private void configureMenuItems(){
         gameLogoImage.setScale(0.8f,0.8f);
         gameLogoImage.setPosition((GAME_WIDTH-gameLogoImage.getWidth()*gameLogoImage.getScaleX())/2,((GAME_HEIGHT-gameLogoImage.getHeight()*gameLogoImage.getScaleY())/2)+250);
-        logoText.setPosition((GAME_WIDTH-logoText.getWidth())/2,((GAME_HEIGHT-logoText.getHeight())/2)+180);
-        startGameTextButton.setPosition((GAME_WIDTH - startGameTextButton.getWidth())/2,(GAME_HEIGHT - startGameTextButton.getHeight())/2);
-    }
 
+        logoText.setPosition((GAME_WIDTH-logoText.getWidth())/2,((GAME_HEIGHT-logoText.getHeight())/2)+180);
+
+        startGameTextButton.setPosition((GAME_WIDTH - startGameTextButton.getWidth())/2,(GAME_HEIGHT - startGameTextButton.getHeight())/2);
+
+    }
     private void initMenuButtonsListeners(){
         startGameTextButton.addListener(new ClickListener() {
 
+
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                startFadeOutAnimation();
+                //startFadeOutAnimation();
+                animationGroup.removeActor(startGameTextButton);
+                animationGroup.addActor(loginWindow);
                 clickSound.play();
                 return true;
             }
@@ -193,7 +251,7 @@ public class MainMenuFirstScreen implements Screen {
 
                 if (!(Gdx.input.isButtonPressed(Input.Buttons.LEFT))) {
                     // Se o botão esquerdo do mouse não estiver pressionado, então é um hover
-                    long id = hoverSound.play();
+                     hoverSound.play();
                     // Coloque qualquer outra lógica relacionada ao hover aqui
                 }
 
@@ -205,38 +263,18 @@ public class MainMenuFirstScreen implements Screen {
             }
         });
     }
-
     private void addActorsToStage(){
-        menuStage.addActor(animatedBackgroundMainMenu);
-        menuStage.addActor(gameLogoImage);
-        menuStage.addActor(logoText);
-        menuStage.addActor(startGameTextButton);
+
+        animationGroup.addActor(animatedBackgroundMainMenu);
+        animationGroup.addActor(gameLogoImage);
+        animationGroup.addActor(logoText);
+        animationGroup.addActor(startGameTextButton);
+        menuStage.addActor(animationGroup);
 
     }
-
     private void initTween(){
         tweenManager = new TweenManager();
         Tween.registerAccessor(Actor.class, new ActorAcessor());
-    }
-
-    @Override
-    public void render(float delta) {
-        Gdx.gl.glClearColor(255, 255, 255, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-
-
-        stateTime += delta;
-
-
-        // Obtenha o frame atual da animação
-        /*menuStage.getBatch().begin();
-        menuStage.getBatch().draw(gifAnimation.getKeyFrame(stateTime),0f,0f);
-        menuStage.getBatch().end();*/
-        tweenManager.update(delta);
-        menuStage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 60f));
-        menuStage.draw();
-
     }
 
     private void startFadeOutAnimation() {
@@ -269,36 +307,5 @@ public class MainMenuFirstScreen implements Screen {
                 .start(tweenManager);
 
 
-    }
-
-
-    @Override
-    public void resize(int width, int height) {
-
-    }
-
-    @Override
-    public void pause() {
-
-    }
-
-    @Override
-    public void resume() {
-
-    }
-
-    @Override
-    public void hide() {
-
-    }
-
-    @Override
-    public void dispose() {
-
-        fontGeneratorLogo.dispose();
-        menuStage.getBatch().dispose();
-        hoverSound.dispose();
-        clickSound.dispose();
-        backgroundSound.dispose();
     }
 }

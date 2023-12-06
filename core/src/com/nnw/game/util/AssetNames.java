@@ -19,6 +19,10 @@ public class AssetNames {
         public static final String LINE_MENU = "menuItems/line.png";
         public static final String CLOUD_MENU = "menuItems/cloud.png";
 
+        public static final String LOGIN_WINDOW1 = "menuItems/konoha.png";
+
+        public static final String LOGIN_WINDOW2 = "menuItems/loginWindow2.png";
+
         public static final String MAIN_MENU_SECOND_SCREEN_LAYOUT = "backgroundImages/mainMenuSecondScreenLayout.png";
 
         public static final String MAIN_MENU_CHAR_IDLE = "menuItems/menuCharIdle.png";
@@ -139,6 +143,8 @@ public class AssetNames {
     public static class Fonts{
         public static final String MENU_LOGO_FONT = "fonts/narutoLogo/njNaruto.ttf";
         public static final String MENU_ITEMS_FONT = "fonts/paintyPaint/paintP.TTF";
+
+        public static final String LOGIN_WINDOW_FONT = "fonts/geo_sans_light/GeosansLight.ttf";
 
     }
 
