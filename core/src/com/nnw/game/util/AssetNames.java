@@ -1,20 +1,37 @@
 package com.nnw.game.util;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
-
 
 public class AssetNames {
 
     public static class Textures{
 
         //MENU IMAGES
-        public static final String MAIN_MENU_BACKGROUND_IMAGE ="backgroundImages/mainMenuBackground.png";
+        public static final String MAIN_MENU_FIRST_SCREEN_BACKGROUND ="backgroundImages/mainMenuOptionalBackground4.gif";
+        public static final String MAIN_MENU_SECOND_SCREEN_BACKGROUND ="backgroundImages/mainMenuOptionalBackground3.png";
 
-        public static final String MAIN_MENU_BACKGROUND_OPTIONAL_IMAGE ="backgroundImages/mainMenuOptionalBackground4.gif";
 
-        public static final String SECONDARY_MENU_BACKGROUND_IMAGE ="backgroundImages/initGameMenuBackground.png";
+        public static final String SECONDARY_MENU_BACKGROUND_IMAGE ="backgroundImages/mainMenuOptionalBackground5.gif";
 
+        public static final String TRANSPARENT_MASK = "backgroundImages/transparentMask.png";
+
+        public static final String CHAR_MENU_TOBI = "menuItems/charMenu.png";
+
+        public static final String LINE_MENU = "menuItems/line.png";
+        public static final String CLOUD_MENU = "menuItems/cloud.png";
+
+        public static final String MAIN_MENU_SECOND_SCREEN_LAYOUT = "backgroundImages/mainMenuSecondScreenLayout.png";
+
+        public static final String MAIN_MENU_CHAR_IDLE = "menuItems/menuCharIdle.png";
+
+        public static final String MAIN_MENU_CHAR_IDLE1 = "menuItems/menuCharIdle1.png";
+
+        public static final String MAIN_MENU_CHAR_IDLE2 = "menuItems/menuCharIdle2.png";
+
+        public static final String MAIN_MENU_CHAR_IDLE3 = "menuItems/menuCharIdle3.png";
+
+        public static final String MAIN_MENU_CHAR_IDLE4 = "menuItems/menuCharIdle4.png";
+
+        public static final String MAIN_MENU_CHAR_IDLE5 = "menuItems/menuCharIdle5.png";
         //NARUTO LOGO
         public static final String NARUTO_LOGO = "icons/logo/narutoLogo.png";
 
@@ -114,6 +131,7 @@ public class AssetNames {
     }
 
     public static class Sounds{
+        public static final String MENU_BACKGROUND_SOUND = "sounds/menuBackgroundSound.mp3";
         public static final String SELECT_ITEM_MENU_SOUND = "sounds/select.mp3";
         public static final String HOVER_ITEM_MENU_SOUND ="sounds/menuSound.wav";
     }

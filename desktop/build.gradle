@@ -1,6 +1,6 @@
 sourceCompatibility = 1.8
 dependencies {
-
+implementation 'org.mini2Dx:universal-tween-engine:6.3.3'
 }
 sourceSets.main.java.srcDirs = [ "src/" ]
 sourceSets.main.resources.srcDirs = ["../assets"]
