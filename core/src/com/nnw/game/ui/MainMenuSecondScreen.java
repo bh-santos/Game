@@ -369,12 +369,12 @@ public class MainMenuSecondScreen implements Screen {
         cloudImageTop3.setPosition(780,520);
         cloudImageTop4.setPosition(1200,520);
 
-        cloudImageBottom1.setPosition(50,0);
-        cloudImageBottom2.setPosition(480,0);
-        cloudImageBottom3.setPosition(880,0);
-        cloudImageBottom4.setPosition(1280,0);
-        cloudImageBottom5.setPosition(600,0);
-        cloudImageBottom6.setPosition(1000,0);
+        cloudImageBottom1.setPosition(50+300,0);
+        cloudImageBottom2.setPosition(480+300,0);
+        cloudImageBottom3.setPosition(880+300,0);
+        cloudImageBottom4.setPosition(100,0);
+        cloudImageBottom5.setPosition(600+300,0);
+        cloudImageBottom6.setPosition(1280,0);
 
 
     }

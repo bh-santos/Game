@@ -40,8 +40,6 @@ public class MainMenuFirstScreen implements Screen {
     private Game game;
     private UIType uiType;
     private Stage menuStage;
-    private Texture backgroundTexture;
-    private Image backgroundImage;
     private Skin uiConfigs;
     private FreeTypeFontGenerator fontGeneratorLogo;
     private FreeTypeFontGenerator fontGeneratorItems;
@@ -58,6 +56,12 @@ public class MainMenuFirstScreen implements Screen {
     private Sound clickSound;
     private Sound hoverSound;
     private Sound backgroundSound;
+    private TextButton.TextButtonStyle startGameButtonTextStyle;
+    private BitmapFont startGameButtonText;
+    private FreeTypeFontGenerator.FreeTypeFontParameter fontButtonParameter;
+    private FreeTypeFontGenerator.FreeTypeFontParameter fontLogoParameter;
+    private BitmapFont fontLogo;
+    private Label.LabelStyle titleTextStyle;
 
 
     public MainMenuFirstScreen(Game game, UIType type){
@@ -66,12 +70,31 @@ public class MainMenuFirstScreen implements Screen {
     }
     @Override
     public void show() {
-        //criando o palco do jogo
+        initStage();
+        initOrganizers();
+        initAudioSystem();
+        initUIConfig();
+        initTextures();
+        initImages();
+        initAnimations();
+        generateFonts();
+        createMenuItems();
+        configureMenuItemsPositions();
+        initMenuButtonsListeners();
+        addActorsToStage();
+        initTween();
+
+    }
+
+    private void initStage(){
         menuStage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
         Gdx.input.setInputProcessor(menuStage);
+    }
 
-        //trabalhando com áudio
-
+    private void initOrganizers(){
+        animationGroup = new Group();
+    }
+    public void initAudioSystem(){
         clickSound = Gdx.audio.newSound(Gdx.files.internal(SELECT_ITEM_MENU_SOUND));
         clickSound.play(0.0f);
         clickSound.stop();
@@ -83,93 +106,84 @@ public class MainMenuFirstScreen implements Screen {
         backgroundSound = Gdx.audio.newSound(Gdx.files.internal(MENU_BACKGROUND_SOUND));
         backgroundSound.play();
         backgroundSound.loop();
+    }
 
-        //criando o fundo do palco
-        backgroundTexture=new Texture(MAIN_MENU_FIRST_SCREEN_BACKGROUND);
-        backgroundImage = new Image(backgroundTexture);
-
-        //trabalhando com gifs
-
-        gifAnimation = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP,Gdx.files.internal(MAIN_MENU_FIRST_SCREEN_BACKGROUND).read());
-
-        animatedBackgroundMainMenu = new AnimatedBackgroundMainMenu(gifAnimation);
-
-        animationGroup = new Group();
-
-        //criando o logo
+    public void initTextures(){
         gameLogoTexture = new Texture(NARUTO_LOGO);
-        gameLogoImage = new Image(gameLogoTexture);
-        gameLogoImage.setScale(0.8f,0.8f);
-        gameLogoImage.setPosition((GAME_WIDTH-gameLogoImage.getWidth()*gameLogoImage.getScaleX())/2,((GAME_HEIGHT-gameLogoImage.getHeight()*gameLogoImage.getScaleY())/2)+250);
+    }
 
+    public void initAnimations(){
+        gifAnimation = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP,Gdx.files.internal(MAIN_MENU_FIRST_SCREEN_BACKGROUND).read());
+        animatedBackgroundMainMenu = new AnimatedBackgroundMainMenu(gifAnimation);
+    }
+
+    public void initImages(){
+        gameLogoImage = new Image(gameLogoTexture);
+    }
+
+    private void initUIConfig(){
+        uiConfigs = new Skin();
+    }
+
+    private void generateFonts(){
         //criando a fonte do logo do menu
         fontGeneratorLogo =new FreeTypeFontGenerator(Gdx.files.internal(MENU_LOGO_FONT));
-        FreeTypeFontGenerator.FreeTypeFontParameter parameter =new FreeTypeFontGenerator.FreeTypeFontParameter();
-        parameter.size = 50;
-        parameter.color = Color.FIREBRICK;
-        parameter.borderColor = Color.BLACK;
-        parameter.borderWidth = 1;
-        parameter.borderStraight =true;
-        parameter.shadowColor = Color.DARK_GRAY;
-        parameter.shadowOffsetX = 8;
-        parameter.shadowOffsetY = 8;
-        final BitmapFont fontLogo = fontGeneratorLogo.generateFont(parameter);
-
-        Label.LabelStyle titleTextStyle = new Label.LabelStyle();
+        fontLogoParameter =new FreeTypeFontGenerator.FreeTypeFontParameter();
+        fontLogoParameter.size = 50;
+        fontLogoParameter.color = Color.FIREBRICK;
+        fontLogoParameter.borderColor = Color.BLACK;
+        fontLogoParameter.borderWidth = 1;
+        fontLogoParameter.borderStraight =true;
+        fontLogoParameter.shadowColor = Color.DARK_GRAY;
+        fontLogoParameter.shadowOffsetX = 8;
+        fontLogoParameter.shadowOffsetY = 8;
+        fontLogo = fontGeneratorLogo.generateFont(fontLogoParameter);
+        titleTextStyle = new Label.LabelStyle();
         titleTextStyle.font=fontLogo;
-        //titleTextStyle.fontColor = Color.DARK_GRAY;
-
-
-        //inicializando o configurador dos itens da UI
-        uiConfigs = new Skin();
-
         uiConfigs.add("title_text",titleTextStyle);
-
-        //criando o texto do logo menu;
-        logoText = new Label("Ninja War",uiConfigs,"title_text");
-
-        logoText.setPosition((GAME_WIDTH-logoText.getWidth())/2,((GAME_HEIGHT-logoText.getHeight())/2)+180);
-
-
 
         //criando a fonte do botão de Start Game
         fontGeneratorItems = new FreeTypeFontGenerator(Gdx.files.internal(MENU_ITEMS_FONT));
-        FreeTypeFontGenerator.FreeTypeFontParameter fontParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        fontParameter.size = 50;
-        fontParameter.color = Color.ORANGE;
-        fontParameter.borderColor = Color.BLACK;
-        fontParameter.borderWidth = 1;
-        fontParameter.borderStraight =true;
-        fontParameter.shadowColor = Color.DARK_GRAY;
-        fontParameter.shadowOffsetX = 4;
-        fontParameter.shadowOffsetY = 4;
-        final BitmapFont startGameButtonText = fontGeneratorItems.generateFont(fontParameter);
+        fontButtonParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        fontButtonParameter.size = 50;
+        fontButtonParameter.color = Color.ORANGE;
+        fontButtonParameter.borderColor = Color.BLACK;
+        fontButtonParameter.borderWidth = 1;
+        fontButtonParameter.borderStraight =true;
+        fontButtonParameter.shadowColor = Color.DARK_GRAY;
+        fontButtonParameter.shadowOffsetX = 4;
+        fontButtonParameter.shadowOffsetY = 4;
+        startGameButtonText = fontGeneratorItems.generateFont(fontButtonParameter);
 
         //ajustando as configurações de estilo do botão
-        TextButton.TextButtonStyle startGameButtonTextStyle = new TextButton.TextButtonStyle();
+        startGameButtonTextStyle = new TextButton.TextButtonStyle();
         startGameButtonTextStyle.font = startGameButtonText;
         startGameButtonTextStyle.overFontColor = Color.DARK_GRAY;
         startGameButtonTextStyle.downFontColor = Color.RED;
-
-
-
         uiConfigs.add("start_game_text",startGameButtonTextStyle);
+    }
 
-
+    private void createMenuItems(){
+        //criando o texto do logo menu;
+        logoText = new Label("Ninja War",uiConfigs,"title_text");
         //criando o botão
         startGameTextButton = new TextButton("START GAME",uiConfigs,"start_game_text");
+    }
 
-        //ajustando o tamanho do botão
+    private void configureMenuItemsPositions(){
+        gameLogoImage.setScale(0.8f,0.8f);
+        gameLogoImage.setPosition((GAME_WIDTH-gameLogoImage.getWidth()*gameLogoImage.getScaleX())/2,((GAME_HEIGHT-gameLogoImage.getHeight()*gameLogoImage.getScaleY())/2)+250);
+        logoText.setPosition((GAME_WIDTH-logoText.getWidth())/2,((GAME_HEIGHT-logoText.getHeight())/2)+180);
         startGameTextButton.setPosition((GAME_WIDTH - startGameTextButton.getWidth())/2,(GAME_HEIGHT - startGameTextButton.getHeight())/2);
-        //adicionando as configurações do botão
+    }
 
+    private void initMenuButtonsListeners(){
         startGameTextButton.addListener(new ClickListener() {
-
 
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                    startFadeOutAnimation();
-                    clickSound.play();
+                startFadeOutAnimation();
+                clickSound.play();
                 return true;
             }
 
@@ -190,20 +204,19 @@ public class MainMenuFirstScreen implements Screen {
 
             }
         });
-        animatedBackgroundMainMenu.toBack();
-        //adicionando os itens ao palco
-        //menuStage.addActor(backgroundImage);
+    }
+
+    private void addActorsToStage(){
         menuStage.addActor(animatedBackgroundMainMenu);
         menuStage.addActor(gameLogoImage);
         menuStage.addActor(logoText);
         menuStage.addActor(startGameTextButton);
 
+    }
 
-
-
+    private void initTween(){
         tweenManager = new TweenManager();
         Tween.registerAccessor(Actor.class, new ActorAcessor());
-
     }
 
     @Override
@@ -281,7 +294,7 @@ public class MainMenuFirstScreen implements Screen {
 
     @Override
     public void dispose() {
-        backgroundTexture.dispose();
+
         fontGeneratorLogo.dispose();
         menuStage.getBatch().dispose();
         hoverSound.dispose();
