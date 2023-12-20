@@ -7,6 +7,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -18,7 +19,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.nnw.game.server.PingCallback;
+import com.nnw.game.server.PingManager;
 import com.nnw.game.util.UIType;
 import lombok.Data;
 
@@ -141,6 +145,23 @@ public class MainMenuSecondScreen implements Screen {
     private void initStage(){
         menuStage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
         Gdx.input.setInputProcessor(menuStage);
+
+        //verificador de conexão
+        Timer.schedule(new Timer.Task() {
+            @Override
+            public void run() {
+                PingManager.pingServer(new PingCallback() {
+                    @Override
+                    public void onPingResult(boolean isConnected, long latency) {
+                        if(isConnected){
+                            System.out.println("Connected");
+                        }else{
+                            System.out.println("Disconnected");
+                        }
+                    }
+                });
+            }
+        }, 1, 1);
     }
     private void initUIConfig(){
         uiConfigs = new Skin();
@@ -303,10 +324,16 @@ public class MainMenuSecondScreen implements Screen {
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 hoverSound.play();
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
                 animationOrganizer.removeActor(charMenuImageIdle);
                 charMenuImageIdle = new Image(charMenuTextures[1]);
                 charMenuImageIdle.setPosition(charPositionX,charPositionY);
                 animationOrganizer.addActor(charMenuImageIdle);
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
             }
         });
 
@@ -314,11 +341,17 @@ public class MainMenuSecondScreen implements Screen {
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 hoverSound.play();
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
                 animationOrganizer.removeActor(charMenuImageIdle);
                 charMenuImageIdle = new Image(charMenuTextures[2]);
                 charMenuImageIdle.setPosition(charPositionX,charPositionY);
                 animationOrganizer.addActor(charMenuImageIdle);
 
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
             }
         });
 
@@ -331,16 +364,27 @@ public class MainMenuSecondScreen implements Screen {
                 charMenuImageIdle.setPosition(charPositionX,charPositionY);
                 animationOrganizer.addActor(charMenuImageIdle);
             }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
+            }
         });
 
         playerVsPlayerLocalButton.addListener(new InputListener(){
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 hoverSound.play();
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
                 animationOrganizer.removeActor(charMenuImageIdle);
                 charMenuImageIdle = new Image(charMenuTextures[4]);
                 charMenuImageIdle.setPosition(charPositionX,charPositionY);
                 animationOrganizer.addActor(charMenuImageIdle);
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
             }
         });
 
@@ -348,10 +392,16 @@ public class MainMenuSecondScreen implements Screen {
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 hoverSound.play();
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
                 animationOrganizer.removeActor(charMenuImageIdle);
                 charMenuImageIdle = new Image(charMenuTextures[5]);
                 charMenuImageIdle.setPosition(charPositionX,charPositionY);
                 animationOrganizer.addActor(charMenuImageIdle);
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
             }
         });
 

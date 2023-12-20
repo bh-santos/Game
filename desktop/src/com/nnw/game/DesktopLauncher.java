@@ -2,6 +2,8 @@ package com.nnw.game;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.badlogic.gdx.utils.Timer;
+import com.nnw.game.server.PingManager;
 
 import static com.nnw.game.util.AssetNames.Textures.ANIMATED_SCREEN_ICON;
 import static com.nnw.game.util.Settings.*;

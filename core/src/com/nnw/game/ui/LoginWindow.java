@@ -2,9 +2,11 @@ package com.nnw.game.ui;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
@@ -22,8 +24,18 @@ public class LoginWindow extends Table {
     private BitmapFont loginTextFont;
     private Skin windowUIConfig;
     private Label title;
+
+    public TextField getLogin() {
+        return login;
+    }
+
+    public TextField getPassword() {
+        return password;
+    }
+
     private TextField login;
     private TextField password;
+
 
 
     public LoginWindow(){
@@ -33,6 +45,7 @@ public class LoginWindow extends Table {
         initStyleConfigurations();
         initWindowsItems();
         initWindowsItemsConfigurations();
+        addListeners();
         addItemsToWindow();
     }
 
@@ -49,11 +62,12 @@ public class LoginWindow extends Table {
         fontLoginTextParameter.shadowOffsetX = 2;
         fontLoginTextParameter.shadowOffsetY = 2;
         loginTextFont = fontGeneratorLoginWindow.generateFont(fontLoginTextParameter);
+
     }
 
     private void initTableConfigurations(){
         setSize(350,180);
-        setPosition((Gdx.graphics.getWidth()-getWidth())/2,((Gdx.graphics.getHeight()-getHeight())/2)-210);
+        setPosition((Gdx.graphics.getWidth()-getWidth())/2,((Gdx.graphics.getHeight()-getHeight())/2)-150);
         windowUIConfig = new Skin();
         setSkin(windowUIConfig);
     }
@@ -68,12 +82,14 @@ public class LoginWindow extends Table {
         labelStyle = new Label.LabelStyle();
         labelStyle.font = loginTextFont;
         windowUIConfig.add("default",labelStyle);
+
     }
 
     private void initWindowsItems(){
         title = new Label("Fazer Login",windowUIConfig,"default");
         login = new TextField("",windowUIConfig,"text_field");
         password = new TextField("",windowUIConfig,"text_field");
+
     }
 
     private void initWindowsItemsConfigurations(){
@@ -83,6 +99,7 @@ public class LoginWindow extends Table {
         password.setMessageText("senha");
         password.setPasswordMode(true);
         password.setPasswordCharacter('*');
+
     }
     private void initWindowBackgroundConfigurations(){
         loginWindowTexture = new Texture(Gdx.files.internal(CLOUD_MENU));
@@ -98,6 +115,31 @@ public class LoginWindow extends Table {
         row().padBottom(10);
         add("Senha").padRight(10);
         add(password).width(200).padBottom(10);
+    }
+
+    private void addListeners(){
+        login.addListener(new InputListener(){
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Ibeam);
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
+            }
+        });
+        password.addListener(new InputListener(){
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Ibeam);
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
+            }
+        });
     }
 
     public void dispose(){

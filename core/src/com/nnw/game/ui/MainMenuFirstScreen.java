@@ -7,23 +7,25 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Group;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.nnw.game.server.LoginCallback;
+import com.nnw.game.server.PingManager;
 import com.nnw.game.util.UIType;
 import lombok.Data;
 
 
+import static com.nnw.game.server.AuthenticationLogin.*;
+import static com.nnw.game.server.CreateAccount.createAccount;
 import static com.nnw.game.util.AssetNames.Fonts.*;
 import static com.nnw.game.util.AssetNames.Sounds.*;
 import static com.nnw.game.util.AssetNames.Textures.*;
@@ -45,7 +47,7 @@ public class MainMenuFirstScreen implements Screen {
     private float stateTime;
     private TweenManager tweenManager;
     private Label logoText;
-    private Group animationGroup;
+    private Group menuItemsOrganizer;
     private AnimatedBackgroundMainMenu animatedBackgroundMainMenu;
     private TextButton startGameTextButton;
     private Sound clickSound;
@@ -58,6 +60,20 @@ public class MainMenuFirstScreen implements Screen {
     private BitmapFont fontLogo;
     private Label.LabelStyle titleTextStyle;
     private LoginWindow loginWindow;
+    private TextButton loginButton;
+    private TextButton.TextButtonStyle enterButtonStyle;
+    private FreeTypeFontGenerator fontGeneratorEnterButton;
+    private FreeTypeFontGenerator.FreeTypeFontParameter enterButtonFontParameter;
+    private BitmapFont enterButtonFont;
+    private TextButton createAccountButton;
+    private CreateAccountWindow createAccountWindow;
+    private FreeTypeFontGenerator fontGeneratorButtons;
+    private FreeTypeFontGenerator.FreeTypeFontParameter buttonsFontParameter;
+    private BitmapFont buttonsFont;
+    private TextButton.TextButtonStyle buttonsStyle;
+    private TextButton createButton;
+    private TextButton backButton;
+    private Label loginTextSuccess;
 
 
     public MainMenuFirstScreen(Game game, UIType type){
@@ -73,6 +89,7 @@ public class MainMenuFirstScreen implements Screen {
         initImages();
         initAnimations();
         generateFonts();
+        initStyleConfigurations();
         createMenuItems();
         configureMenuItems();
         initMenuButtonsListeners();
@@ -140,6 +157,7 @@ public class MainMenuFirstScreen implements Screen {
         gameLogoTexture.dispose();
         fontGeneratorItems.dispose();
         loginWindow.dispose();
+        createAccountWindow.dispose();
 
     }
 
@@ -149,7 +167,7 @@ public class MainMenuFirstScreen implements Screen {
         Gdx.input.setInputProcessor(menuStage);
     }
     private void initOrganizers(){
-        animationGroup = new Group();
+        menuItemsOrganizer = new Group();
     }
     public void initAudioSystem(){
         clickSound = Gdx.audio.newSound(Gdx.files.internal(SELECT_ITEM_MENU_SOUND));
@@ -190,9 +208,6 @@ public class MainMenuFirstScreen implements Screen {
         fontLogoParameter.shadowOffsetX = 8;
         fontLogoParameter.shadowOffsetY = 8;
         fontLogo = fontGeneratorLogo.generateFont(fontLogoParameter);
-        titleTextStyle = new Label.LabelStyle();
-        titleTextStyle.font=fontLogo;
-        uiConfigs.add("title_text",titleTextStyle);
 
         //criando a fonte do botão de Start Game
         fontGeneratorItems = new FreeTypeFontGenerator(Gdx.files.internal(MENU_ITEMS_FONT));
@@ -207,12 +222,17 @@ public class MainMenuFirstScreen implements Screen {
         fontButtonParameter.shadowOffsetY = 4;
         startGameFont = fontGeneratorItems.generateFont(fontButtonParameter);
 
-        //ajustando as configurações de estilo do botão
-        startGameButtonTextStyle = new TextButton.TextButtonStyle();
-        startGameButtonTextStyle.font = startGameFont;
-        startGameButtonTextStyle.overFontColor = Color.DARK_GRAY;
-        startGameButtonTextStyle.downFontColor = Color.RED;
-        uiConfigs.add("start_game_text",startGameButtonTextStyle);
+
+        fontGeneratorButtons = new FreeTypeFontGenerator(Gdx.files.internal(LOGIN_WINDOW_FONT));
+        buttonsFontParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        buttonsFontParameter.size = 30;
+        buttonsFontParameter.color = Color.WHITE;
+        buttonsFontParameter.borderColor = Color.BLACK;
+        buttonsFontParameter.borderWidth = 0.3f;
+        buttonsFontParameter.shadowColor = Color.DARK_GRAY;
+        buttonsFontParameter.shadowOffsetX = 2;
+        buttonsFontParameter.shadowOffsetY = 2;
+        buttonsFont = fontGeneratorButtons.generateFont(buttonsFontParameter);
 
     }
     private void createMenuItems(){
@@ -222,25 +242,55 @@ public class MainMenuFirstScreen implements Screen {
         startGameTextButton = new TextButton("START GAME",uiConfigs,"start_game_text");
         //criando tela de login
         loginWindow = new LoginWindow();
+        createAccountWindow = new CreateAccountWindow();
+        loginButton = new TextButton("Entrar",uiConfigs,"enter_button");
+        createAccountButton = new TextButton("Criar conta", uiConfigs, "enter_button");
+        createButton = new TextButton("Criar", uiConfigs, "enter_button");
+        backButton = new TextButton("Voltar",uiConfigs,"enter_button");
+        loginTextSuccess = new Label("CONTA CRIADA COM SUCESSO", uiConfigs,"title_text");
+    }
+
+    private void initStyleConfigurations(){
+        titleTextStyle = new Label.LabelStyle();
+        titleTextStyle.font=fontLogo;
+        uiConfigs.add("title_text",titleTextStyle);
+
+        //ajustando as configurações de estilo do botão
+        startGameButtonTextStyle = new TextButton.TextButtonStyle();
+        startGameButtonTextStyle.font = startGameFont;
+        startGameButtonTextStyle.overFontColor = Color.DARK_GRAY;
+        startGameButtonTextStyle.downFontColor = Color.RED;
+        uiConfigs.add("start_game_text",startGameButtonTextStyle);
+
+
+        buttonsStyle = new TextButton.TextButtonStyle();
+        buttonsStyle.font = buttonsFont;
+        buttonsStyle.overFontColor = Color.DARK_GRAY;
+        uiConfigs.add("enter_button",buttonsStyle);
     }
     private void configureMenuItems(){
         gameLogoImage.setScale(0.8f,0.8f);
         gameLogoImage.setPosition((GAME_WIDTH-gameLogoImage.getWidth()*gameLogoImage.getScaleX())/2,((GAME_HEIGHT-gameLogoImage.getHeight()*gameLogoImage.getScaleY())/2)+250);
 
         logoText.setPosition((GAME_WIDTH-logoText.getWidth())/2,((GAME_HEIGHT-logoText.getHeight())/2)+180);
-
         startGameTextButton.setPosition((GAME_WIDTH - startGameTextButton.getWidth())/2,(GAME_HEIGHT - startGameTextButton.getHeight())/2);
+        loginButton.setPosition(640-120,85);
+        createAccountButton.setPosition(640+10,85);
+        createButton.setPosition(640-120,85);
+        backButton.setPosition(640+10,85);
+        loginTextSuccess.setPosition((GAME_WIDTH-loginTextSuccess.getWidth())/2,(GAME_HEIGHT-loginTextSuccess.getHeight())/2);
+
 
     }
     private void initMenuButtonsListeners(){
-        startGameTextButton.addListener(new ClickListener() {
-
+        startGameTextButton.addListener(new InputListener() {
 
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                //startFadeOutAnimation();
-                animationGroup.removeActor(startGameTextButton);
-                animationGroup.addActor(loginWindow);
+                menuItemsOrganizer.removeActor(startGameTextButton);
+                menuItemsOrganizer.addActor(loginWindow);
+                menuItemsOrganizer.addActor(loginButton);
+                menuItemsOrganizer.addActor(createAccountButton);
                 clickSound.play();
                 return true;
             }
@@ -248,7 +298,7 @@ public class MainMenuFirstScreen implements Screen {
 
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
-
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
                 if (!(Gdx.input.isButtonPressed(Input.Buttons.LEFT))) {
                     // Se o botão esquerdo do mouse não estiver pressionado, então é um hover
                      hoverSound.play();
@@ -259,17 +309,127 @@ public class MainMenuFirstScreen implements Screen {
 
             @Override
             public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
+            }
+        });
+
+        loginButton.addListener(new InputListener(){
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                clickSound.play();
+                login(loginWindow.getLogin().getText(), loginWindow.getPassword().getText(), new LoginCallback() {
+                    @Override
+                    public void onLoginCompleted(boolean isLogged) {
+                        if (isLogged) {
+                            System.out.println("Login bem-sucedido!");
+                            startFadeOutAnimation();
+                        } else {
+                            System.out.println("Falha no login.");
+                        }
+                    }
+                },game);
+
+                return true;
+            }
+
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+            hoverSound.play();
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+
+            }
+
+        });
+
+        createAccountButton.addListener(new InputListener(){
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                menuItemsOrganizer.removeActor(loginWindow);
+                menuItemsOrganizer.removeActor(loginButton);
+                menuItemsOrganizer.removeActor(createAccountButton);
+                menuItemsOrganizer.addActor(createAccountWindow);
+                menuItemsOrganizer.addActor(createButton);
+                menuItemsOrganizer.addActor(backButton);
+                return true;
+            }
+
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
 
             }
         });
+
+        createButton.addListener(new InputListener(){
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                if(createAccountWindow.getConfirmEmail().getText().equalsIgnoreCase(createAccountWindow.getEmail().getText()) &&
+                createAccountWindow.getConfirmPassword().getText().equals(createAccountWindow.getPassword().getText()) &&
+                !createAccountWindow.verifyIfTextFieldsIsEmpty()) {
+                    createAccount(
+                            createAccountWindow.getUserNickName().getText(),
+                            createAccountWindow.getUserName().getText(),
+                            createAccountWindow.getPassword().getText(),
+                            createAccountWindow.getBirthday().getText(),
+                            createAccountWindow.getEmail().getText()
+                    );
+                    menuItemsOrganizer.removeActor(createAccountWindow);
+                    menuItemsOrganizer.removeActor(createButton);
+                    menuItemsOrganizer.addActor(loginTextSuccess);
+                    backButton.setPosition((1280-backButton.getWidth())/2,85);
+
+                }else{
+                    System.out.println("Valores Diferentes");
+                }
+
+                return true;
+            }
+
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+
+            }
+        });
+
+        backButton.addListener(new InputListener(){
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                createAccountWindow.clearAllTextFields();
+                menuItemsOrganizer.removeActor(createAccountWindow);
+                menuItemsOrganizer.removeActor(createButton);
+                menuItemsOrganizer.removeActor(backButton);
+                menuItemsOrganizer.addActor(loginWindow);
+                menuItemsOrganizer.addActor(loginButton);
+                menuItemsOrganizer.addActor(createAccountButton);
+                backButton.setPosition(640+10,85);
+                if(menuItemsOrganizer.getChildren().contains(loginTextSuccess,true)) {
+                    menuItemsOrganizer.removeActor(loginTextSuccess);
+                }
+                return true;
+            }
+        });
+
     }
+
     private void addActorsToStage(){
 
-        animationGroup.addActor(animatedBackgroundMainMenu);
-        animationGroup.addActor(gameLogoImage);
-        animationGroup.addActor(logoText);
-        animationGroup.addActor(startGameTextButton);
-        menuStage.addActor(animationGroup);
+        menuItemsOrganizer.addActor(animatedBackgroundMainMenu);
+        menuItemsOrganizer.addActor(gameLogoImage);
+        menuItemsOrganizer.addActor(logoText);
+        menuItemsOrganizer.addActor(startGameTextButton);
+        menuStage.addActor(menuItemsOrganizer);
 
     }
     private void initTween(){
@@ -281,7 +441,7 @@ public class MainMenuFirstScreen implements Screen {
         float duration = 2.0f;  // Duração da animação em segundos
 
         // Crie os tweens para os atores (imagem e label)
-        Tween.to(startGameTextButton, ActorAcessor.ALPHA, duration)
+        Tween.to(menuItemsOrganizer, ActorAcessor.ALPHA, duration)
                 .target(0)
                 .ease(TweenEquations.easeInOutQuad)
                 .setCallback(new TweenCallback() {
@@ -295,17 +455,6 @@ public class MainMenuFirstScreen implements Screen {
                     }
                 })
                 .start(tweenManager);
-
-        Tween.to(logoText, ActorAcessor.ALPHA, duration)
-                .target(0)
-                .ease(TweenEquations.easeInOutQuad)
-                .start(tweenManager);
-
-        Tween.to(gameLogoImage,ActorAcessor.ALPHA,duration)
-                .target(0)
-                .ease(TweenEquations.easeInOutQuad)
-                .start(tweenManager);
-
 
     }
 }
