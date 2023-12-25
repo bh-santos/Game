@@ -10,23 +10,20 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.utils.Timer;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.viewport.FitViewport;
-import com.nnw.game.server.PingCallback;
-import com.nnw.game.server.PingManager;
+import com.nnw.game.entities.player.GameUser;
 import com.nnw.game.util.UIType;
 import lombok.Data;
 
-import static com.nnw.game.util.AssetNames.Fonts.MENU_ITEMS_FONT;
+import static com.nnw.game.util.AssetNames.Fonts.*;
 import static com.nnw.game.util.AssetNames.Sounds.HOVER_ITEM_MENU_SOUND;
 import static com.nnw.game.util.AssetNames.Textures.*;
 import static com.nnw.game.util.Settings.GAME_HEIGHT;
@@ -44,21 +41,21 @@ public class MainMenuSecondScreen implements Screen {
     private Animation<TextureRegion> gifAnimation;
     private AnimatedBackgroundMainMenu animatedBackgroundMainMenu;
     private FileHandle animatedBackgroundFile;
-    private FreeTypeFontGenerator fontGeneratorItems;
+    private FreeTypeFontGenerator topButtonsFontGenerator;
     private Skin uiConfigs;
-    private TextButton playerVsCPUButton;
-    private TextButton playerVsPlayerButton;
-    private TextButton playerVsPlayerOnlineButton;
-    private TextButton playerVsPlayerLocalButton;
-    private TextButton trainingButton;
+    private TextButton shopButton;
+    private TextButton profileButton;
+    private TextButton missionsButton;
+    private TextButton configurationButton;
+    private TextButton playGameButton;
     private Group buttonsGroup;
     private Texture[] charMenuTextures = new Texture[6];
     private Image charMenuImageIdle;
-    private Table menuItemsOrganizer;
+    private Group menuItemsOrganizer;
     private final float charPositionX = 850,charPositionY =120;
     private Sound hoverSound;
-    private BitmapFont menuItemsText;
-    private TextButton.TextButtonStyle menuItemsStyle;
+    private BitmapFont topButtonsFont;
+    private TextButton.TextButtonStyle topButtonsStyle;
     private FreeTypeFontGenerator.FreeTypeFontParameter fontParameter;
     private Texture gameLogoTexture;
     private Image gameLogoImage;
@@ -75,15 +72,62 @@ public class MainMenuSecondScreen implements Screen {
     private Image cloudImageTop4;
     private final int SPEED =50;
     private float positionXCloudImageTop1, positionXCloudImageTop3, positionXCloudImageTop4, positionXCloudImageTop2, positionXCloudImageBottom1, positionXCloudImageBottom2, positionXCloudImageBottom3, positionXCloudImageBottom4, positionXCloudImageBottom5, positionXCloudImageBottom6;
+    private Texture shopButtonTexture;
+    private Texture profileButtonTexture;
+    private Texture configurationButtonTexture;
+    private Texture missionButtonTexture;
+    private Texture profileLayoutTexture;
+    private Texture profileMoldingTexture;
+    private Texture playGameButtonTexture;
+    private Texture initButtonTexture;
+    private Texture exitButtonTexture;
+    private Image shopButtonImage;
+    private Image profileButtonImage;
+    private Image configurationButtonImage;
+    private Image missionButtonImage;
+    private Image playGameButtonImage;
+    private Image initButtonImage;
+    private Image exitButtonImage;
+    private Image profileLayoutImage;
+    private Image profileMolding;
+    private TextButton initButton;
+    private TextButton exitButton;
+    private TextButton.TextButtonStyle leftButtonsStyle;
+    private FreeTypeFontGenerator leftButtonsFontGenerator;
+    private FreeTypeFontGenerator.FreeTypeFontParameter leftButtonsFontParameter;
+    private BitmapFont leftButtonsFont;
+    private Label.LabelStyle profileLayoutStyle;
+    private Label nicknameInfo;
+    private GameUser gameUser;
+    private Label titleInfo;
+    private Texture profileIconTexture;
+    private Image profileIconImage;
+    private FreeTypeFontGenerator generalFontGenerator;
+    private FreeTypeFontGenerator.FreeTypeFontParameter generalFontParameter;
+    private BitmapFont generalFont;
+    private Label levelInfo;
+    private Label ryousInfo;
+    private Label moonCoinInfo;
+    private Group selectModeOrganizer;
+    private Animation<TextureRegion> selectModeGifAnimation;
+    private AnimatedBackgroundMainMenu animatedSelectModeBackground;
+    private Group charOrganizer;
+    private SelectModeMiniScreen miniScreen;
+    private Group gifBackgroundOrganizer;
+    private ParticleEffect particleEffect;
+    private SpriteBatch spriteBatch;
+    private Texture backgroundTexture;
+    private Image backgroundImage;
 
-    public MainMenuSecondScreen(Game game, UIType type){
+    public MainMenuSecondScreen(Game game, UIType type,GameUser gameUser){
         this.game = game;
         this.uiType=type;
-
+        this.gameUser=gameUser;
     }
     @Override
     public void show() {
         initStage();
+        spriteBatch = new SpriteBatch();
         initUIConfig();
         initOrganizers();
         initAudioSystem();
@@ -92,9 +136,9 @@ public class MainMenuSecondScreen implements Screen {
         initAnimations();
         initTween();
         configureMenuButtonsFont();
-        createMenuButtons();
+        createMenuItems();
         initButtonsListeners();
-        addMenuButtonsToOrganizer();
+        configureMenuButtons();
         configureMenuItemsPositions();
         addActorsToStage();
         startFadeIn();
@@ -106,10 +150,16 @@ public class MainMenuSecondScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         tweenManager.update(delta);
 
-        menuStage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 60f));
+        menuStage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         menuStage.draw();
         moveClouds(delta);
 
+        particleEffect.update(delta);
+        spriteBatch.begin();
+        // Renderize o efeito de partículas
+        particleEffect.draw(spriteBatch, delta);
+        particleEffect.start();
+        spriteBatch.end();
     }
 
     @Override
@@ -145,32 +195,20 @@ public class MainMenuSecondScreen implements Screen {
     private void initStage(){
         menuStage = new Stage(new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight()));
         Gdx.input.setInputProcessor(menuStage);
-
-        //verificador de conexão
-        Timer.schedule(new Timer.Task() {
-            @Override
-            public void run() {
-                PingManager.pingServer(new PingCallback() {
-                    @Override
-                    public void onPingResult(boolean isConnected, long latency) {
-                        if(isConnected){
-                            System.out.println("Connected");
-                        }else{
-                            System.out.println("Disconnected");
-                        }
-                    }
-                });
-            }
-        }, 1, 1);
     }
     private void initUIConfig(){
         uiConfigs = new Skin();
     }
     private void initOrganizers(){
         animationOrganizer = new Group();
-        menuItemsOrganizer = new Table();
+        menuItemsOrganizer = new Group();
+        selectModeOrganizer = new Group();
+        miniScreen = new SelectModeMiniScreen(uiConfigs);
+        charOrganizer= new Group();
+        gifBackgroundOrganizer = new Group();
     }
     private void initTextures(){
+        backgroundTexture = new Texture(MAIN_MENU_SECOND_SCREEN_BACKGROUND);
         maskTexture = new Texture(Gdx.files.internal(TRANSPARENT_MASK));
         charMenuTextures[0] = new Texture(Gdx.files.internal(MAIN_MENU_CHAR_IDLE));
         charMenuTextures[1] = new Texture(Gdx.files.internal(MAIN_MENU_CHAR_IDLE1));
@@ -179,10 +217,42 @@ public class MainMenuSecondScreen implements Screen {
         charMenuTextures[4] = new Texture(Gdx.files.internal(MAIN_MENU_CHAR_IDLE4));
         charMenuTextures[5] = new Texture(Gdx.files.internal(MAIN_MENU_CHAR_IDLE5));
         gameLogoTexture = new Texture(NARUTO_LOGO);
+
+        //top buttons
+        shopButtonTexture = new Texture(GENERAL_TOP_BUTTONS);
+        profileButtonTexture = new Texture(GENERAL_TOP_BUTTONS);
+        configurationButtonTexture = new Texture(GENERAL_TOP_BUTTONS);
+        missionButtonTexture = new Texture(GENERAL_TOP_BUTTONS);
+
+        //leftButtons
+
+        playGameButtonTexture = new Texture(GENERAL_LEFT_BUTTONS);
+        initButtonTexture = new Texture(GENERAL_LEFT_BUTTONS);
+        exitButtonTexture = new Texture(GENERAL_LEFT_BUTTONS);
+
+        //profileLayout
+
+        profileLayoutTexture = new Texture(GENERAL_PROFILE_LAYOUT);
+
+        //Mold
+
+        profileMoldingTexture = new Texture(GENERAL_PROFILE_MOLD);
+
+
         cloudTexture = new Texture(CLOUD_MENU);
+
+        //profile Icon
+
+        profileIconTexture = new Texture(gameUser.getProfileImage());
+
+        //select mode Background
+
+
 
     }
     private void initImages(){
+        backgroundImage = new Image(backgroundTexture);
+
         maskImage = new Image(maskTexture);
         charMenuImageIdle = new Image(charMenuTextures[0]);
         gameLogoImage = new Image(gameLogoTexture);
@@ -196,6 +266,35 @@ public class MainMenuSecondScreen implements Screen {
         cloudImageTop3 = new Image(cloudTexture);
         cloudImageBottom6 = new Image(cloudTexture);
         cloudImageTop4 = new Image(cloudTexture);
+
+
+        //top buttons images
+
+
+        shopButtonImage = new Image(shopButtonTexture);
+        profileButtonImage = new Image(profileButtonTexture);
+        configurationButtonImage = new Image(configurationButtonTexture);
+        missionButtonImage = new Image(missionButtonTexture);
+        //leftbuttons
+
+        playGameButtonImage = new Image(playGameButtonTexture);
+        initButtonImage = new Image(initButtonTexture);
+        exitButtonImage = new Image(exitButtonTexture);
+
+        //profile layout
+
+        profileLayoutImage = new Image(profileLayoutTexture);
+
+        //profile mold
+
+        profileMolding = new Image(profileMoldingTexture);
+
+        //profile icon image
+
+        profileIconImage = new Image(profileIconTexture);
+
+
+
     }
     public void moveClouds(float delta){
         if(cloudImageTop1.getX()<1280) {
@@ -271,8 +370,18 @@ public class MainMenuSecondScreen implements Screen {
         cloudImageBottom6.setPosition((positionXCloudImageBottom6 += SPEED * delta), 0);
     }
     private void initAnimations(){
-        gifAnimation = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP, Gdx.files.internal(SECONDARY_MENU_BACKGROUND_IMAGE).read());
-        animatedBackgroundMainMenu = new AnimatedBackgroundMainMenu(gifAnimation);
+        /*gifAnimation = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP, Gdx.files.internal(SELECT_MODE_BACKGROUND).read());
+        animatedBackgroundMainMenu = new AnimatedBackgroundMainMenu(gifAnimation);*/
+
+        /*selectModeGifAnimation = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP,Gdx.files.internal(SELECT_MODE_BACKGROUND).read());
+        animatedSelectModeBackground = new AnimatedBackgroundMainMenu(selectModeGifAnimation);*/
+
+        particleEffect = new ParticleEffect();
+        particleEffect.load(Gdx.files.internal("particles/particle.p"),Gdx.files.internal("particles/imgDir/"));
+
+// Adicione o ParticleEmitter ao ParticleEffect
+
+// Inicie o efeito de partículas
     }
     private void initTween(){
         tweenManager = new TweenManager();
@@ -283,52 +392,111 @@ public class MainMenuSecondScreen implements Screen {
         hoverSound.play(0.0f);
         hoverSound.stop();
     }
-    private void createMenuButtons(){
-        playerVsCPUButton = new TextButton("INICIAR",uiConfigs,"menu_items");
-        playerVsPlayerButton = new TextButton("OPCOES",uiConfigs,"menu_items");
-        playerVsPlayerOnlineButton  = new TextButton("CREDITOS",uiConfigs,"menu_items");
-        playerVsPlayerLocalButton = new TextButton("PERSONALIZAR",uiConfigs,"menu_items");
-        trainingButton = new TextButton("SAIR",uiConfigs,"menu_items");
+    private void createMenuItems(){
+        shopButton = new TextButton("LOJA",uiConfigs,"top_button");
+        profileButton = new TextButton("PERFIL",uiConfigs,"top_button");
+        missionsButton = new TextButton("MISSOES",uiConfigs,"top_button");
+        configurationButton = new TextButton("CONFIG.",uiConfigs,"top_button");
+        playGameButton = new TextButton("JOGAR",uiConfigs,"left_button");
+        initButton = new TextButton("INICIO",uiConfigs,"left_button");
+        exitButton = new TextButton("SAIR",uiConfigs,"left_button");
+
+        levelInfo = new Label("Level: "+gameUser.getLevel(),uiConfigs,"info_style");
+        nicknameInfo = new Label("Nickname: "+gameUser.getNickname(),uiConfigs,"info_style");
+        titleInfo = new Label ("Titulo: " +gameUser.getPlayerTitle(),uiConfigs,"info_style");
+        ryousInfo = new Label("Ryous: "+gameUser.getRyous(),uiConfigs,"info_style");
+        moonCoinInfo = new Label("Moon Coin: " + gameUser.getMoonCoin(),uiConfigs,"info_style");
+
+
     }
     private void configureMenuButtonsFont(){
-        fontGeneratorItems = new FreeTypeFontGenerator(Gdx.files.internal(MENU_ITEMS_FONT));
+        topButtonsFontGenerator = new FreeTypeFontGenerator(Gdx.files.internal(GENERAL_FONT_2));
         fontParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        fontParameter.size = 45;
+        fontParameter.size = 20;
         fontParameter.color = Color.WHITE;
         fontParameter.borderColor = Color.BLACK;
         fontParameter.borderWidth = 1;
         fontParameter.borderStraight =true;
-        fontParameter.shadowColor = Color.DARK_GRAY;
-        fontParameter.shadowOffsetX = 4;
-        fontParameter.shadowOffsetY = 4;
-        menuItemsText = fontGeneratorItems.generateFont(fontParameter);
-        menuItemsStyle = new TextButton.TextButtonStyle();
-        menuItemsStyle.font = menuItemsText;
-        menuItemsStyle.overFontColor = Color.ORANGE;
-        menuItemsStyle.downFontColor = Color.RED;
-        uiConfigs.add("menu_items",menuItemsStyle);
+        fontParameter.shadowColor = Color.BLACK;
+        fontParameter.shadowOffsetX = 1;
+        fontParameter.shadowOffsetY = 1;
+        topButtonsFont = topButtonsFontGenerator.generateFont(fontParameter);
+
+        leftButtonsFontGenerator = new FreeTypeFontGenerator(Gdx.files.internal(GENERAL_FONT_2));
+        leftButtonsFontParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        leftButtonsFontParameter.size = 20;
+        leftButtonsFontParameter.color = Color.WHITE;
+        leftButtonsFontParameter.borderColor = Color.BLACK;
+        leftButtonsFontParameter.borderWidth = 1;
+        leftButtonsFontParameter.borderStraight =true;
+        leftButtonsFontParameter.shadowColor = Color.BLACK;
+        leftButtonsFontParameter.shadowOffsetX = 1;
+        leftButtonsFontParameter.shadowOffsetY = 1;
+        leftButtonsFont = leftButtonsFontGenerator.generateFont(leftButtonsFontParameter);
+
+
+        generalFontGenerator = new FreeTypeFontGenerator(Gdx.files.internal(GENERAL_FONT_2));
+        generalFontParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        generalFontParameter.size = 20;
+        generalFontParameter.color = Color.WHITE;
+        generalFontParameter.borderColor = Color.BLACK;
+        generalFontParameter.borderWidth = 1;
+        generalFontParameter.borderStraight =true;
+        generalFontParameter.shadowColor = Color.BLACK;
+        generalFontParameter.shadowOffsetX = 1;
+        generalFontParameter.shadowOffsetY = 1;
+        generalFont = generalFontGenerator.generateFont(generalFontParameter);
+
+
+
+
+        topButtonsStyle = new TextButton.TextButtonStyle();
+        topButtonsStyle.font = topButtonsFont;
+        topButtonsStyle.overFontColor = Color.ORANGE;
+        topButtonsStyle.downFontColor = Color.RED;
+        topButtonsStyle.up = new TextureRegionDrawable(new TextureRegion(shopButtonTexture));
+        uiConfigs.add("top_button", topButtonsStyle);
+
+        leftButtonsStyle = new TextButton.TextButtonStyle();
+        leftButtonsStyle.font = leftButtonsFont;
+        leftButtonsStyle.overFontColor = Color.RED;
+        leftButtonsStyle.downFontColor = Color.WHITE;
+        leftButtonsStyle.up = new TextureRegionDrawable(new TextureRegion(playGameButtonTexture)).tint(Color.WHITE);
+        uiConfigs.add("left_button",leftButtonsStyle);
+
+        profileLayoutStyle = new Label.LabelStyle();
+        profileLayoutStyle.font = generalFont;
+        uiConfigs.add("info_style",profileLayoutStyle);
+
     }
-    private void addMenuButtonsToOrganizer(){
-        menuItemsOrganizer.add(playerVsCPUButton).left();
-        menuItemsOrganizer.row();
-        menuItemsOrganizer.add(playerVsPlayerButton).left();
-        menuItemsOrganizer.row();
-        menuItemsOrganizer.add(playerVsPlayerOnlineButton).left();
-        menuItemsOrganizer.row();
-        menuItemsOrganizer.add(playerVsPlayerLocalButton).left();
-        menuItemsOrganizer.row();
-        menuItemsOrganizer.add(trainingButton).left();
+    private void configureMenuButtons(){
+        menuItemsOrganizer.addActor(profileButton);
+        menuItemsOrganizer.addActor(missionsButton);
+        menuItemsOrganizer.addActor(shopButton);
+        menuItemsOrganizer.addActor(configurationButton);
+        menuItemsOrganizer.addActor(profileLayoutImage);
+        menuItemsOrganizer.addActor(playGameButton);
+        menuItemsOrganizer.addActor(initButton);
+        menuItemsOrganizer.addActor(exitButton);
+        menuItemsOrganizer.addActor(profileIconImage);
+        menuItemsOrganizer.addActor(profileMolding);
+        menuItemsOrganizer.addActor(nicknameInfo);
+        menuItemsOrganizer.addActor(titleInfo);
+        menuItemsOrganizer.addActor(levelInfo);
+        menuItemsOrganizer.addActor(ryousInfo);
+        menuItemsOrganizer.addActor(moonCoinInfo);
+
     }
     private void initButtonsListeners(){
-        playerVsCPUButton.addListener(new InputListener(){
+        shopButton.addListener(new InputListener(){
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 hoverSound.play();
                 Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
-                animationOrganizer.removeActor(charMenuImageIdle);
+                charOrganizer.removeActor(charMenuImageIdle);
                 charMenuImageIdle = new Image(charMenuTextures[1]);
                 charMenuImageIdle.setPosition(charPositionX,charPositionY);
-                animationOrganizer.addActor(charMenuImageIdle);
+                charOrganizer.addActor(charMenuImageIdle);
             }
 
             @Override
@@ -337,15 +505,15 @@ public class MainMenuSecondScreen implements Screen {
             }
         });
 
-        playerVsPlayerButton.addListener(new InputListener(){
+        profileButton.addListener(new InputListener(){
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 hoverSound.play();
                 Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
-                animationOrganizer.removeActor(charMenuImageIdle);
+                charOrganizer.removeActor(charMenuImageIdle);
                 charMenuImageIdle = new Image(charMenuTextures[2]);
                 charMenuImageIdle.setPosition(charPositionX,charPositionY);
-                animationOrganizer.addActor(charMenuImageIdle);
+                charOrganizer.addActor(charMenuImageIdle);
 
             }
 
@@ -355,14 +523,14 @@ public class MainMenuSecondScreen implements Screen {
             }
         });
 
-        playerVsPlayerOnlineButton.addListener(new InputListener(){
+        missionsButton.addListener(new InputListener(){
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 hoverSound.play();
-                animationOrganizer.removeActor(charMenuImageIdle);
+                charOrganizer.removeActor(charMenuImageIdle);
                 charMenuImageIdle = new Image(charMenuTextures[3]);
                 charMenuImageIdle.setPosition(charPositionX,charPositionY);
-                animationOrganizer.addActor(charMenuImageIdle);
+                charOrganizer.addActor(charMenuImageIdle);
             }
 
             @Override
@@ -371,15 +539,15 @@ public class MainMenuSecondScreen implements Screen {
             }
         });
 
-        playerVsPlayerLocalButton.addListener(new InputListener(){
+        configurationButton.addListener(new InputListener(){
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 hoverSound.play();
                 Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
-                animationOrganizer.removeActor(charMenuImageIdle);
+                charOrganizer.removeActor(charMenuImageIdle);
                 charMenuImageIdle = new Image(charMenuTextures[4]);
                 charMenuImageIdle.setPosition(charPositionX,charPositionY);
-                animationOrganizer.addActor(charMenuImageIdle);
+                charOrganizer.addActor(charMenuImageIdle);
             }
 
             @Override
@@ -388,31 +556,95 @@ public class MainMenuSecondScreen implements Screen {
             }
         });
 
-        trainingButton.addListener(new InputListener(){
+        playGameButton.addListener(new InputListener(){
+
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                selectModeOrganizer.addActor(miniScreen);
+                animationOrganizer.removeActor(charOrganizer);
+                return true;
+            }
+
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
                 hoverSound.play();
                 Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Hand);
-                animationOrganizer.removeActor(charMenuImageIdle);
+                charOrganizer.removeActor(charMenuImageIdle);
                 charMenuImageIdle = new Image(charMenuTextures[5]);
                 charMenuImageIdle.setPosition(charPositionX,charPositionY);
-                animationOrganizer.addActor(charMenuImageIdle);
+                charOrganizer.addActor(charMenuImageIdle);
             }
 
             @Override
             public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
                 Gdx.graphics.setSystemCursor(Cursor.SystemCursor.Arrow);
+            }
+        });
+
+        initButton.addListener(new InputListener(){
+
+        });
+
+        exitButton.addListener(new InputListener(){
+
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                Gdx.app.exit();
+                return true;
+            }
+        });
+
+        miniScreen.getRankedButton().addListener(new InputListener(){
+
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                miniScreen.getRankedButton().setWidth((float) (miniScreen.getRankedButton().getWidth()+30));
+                miniScreen.getRankedButton().setHeight((float) (miniScreen.getRankedButton().getHeight()+30));
+                miniScreen.getRankedButton().setColor(Color.GOLD);
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                miniScreen.getRankedButton().setWidth((float) (miniScreen.getRankedButton().getWidth()-30));
+                miniScreen.getRankedButton().setHeight((float) (miniScreen.getRankedButton().getHeight()-30));
+                miniScreen.getRankedButton().setColor(Color.WHITE);
+            }
+        });
+
+        miniScreen.getNormalButton().addListener(new InputListener(){
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                miniScreen.getNormalButton().setWidth((float) (miniScreen.getNormalButton().getWidth()+30));
+                miniScreen.getNormalButton().setHeight((float) (miniScreen.getNormalButton().getHeight()+30));
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                miniScreen.getNormalButton().setWidth((float) (miniScreen.getNormalButton().getWidth()-30));
+                miniScreen.getNormalButton().setHeight((float) (miniScreen.getNormalButton().getHeight()-30));
+            }
+        });
+
+
+        miniScreen.getTrainingButton().addListener(new InputListener(){
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                miniScreen.getTrainingButton().setWidth((float) (miniScreen.getTrainingButton().getWidth()+30));
+                miniScreen.getTrainingButton().setHeight((float) (miniScreen.getTrainingButton().getHeight()+30));
+            }
+
+            @Override
+            public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+                miniScreen.getTrainingButton().setWidth((float) (miniScreen.getTrainingButton().getWidth()-30));
+                miniScreen.getTrainingButton().setHeight((float) (miniScreen.getTrainingButton().getHeight()-30));
             }
         });
 
 
     }
     private void configureMenuItemsPositions(){
-        menuItemsOrganizer.setPosition(300,360);
         charMenuImageIdle.setPosition(850,120);
 
-        gameLogoImage.setScale(0.4f,0.4f);
-        gameLogoImage.setPosition((GAME_WIDTH-gameLogoImage.getWidth()*gameLogoImage.getScaleX())/2,((GAME_HEIGHT-gameLogoImage.getHeight()*gameLogoImage.getScaleY())/2)+290);
 
         cloudImageTop1.setPosition(-50,520);
         cloudImageTop2.setPosition(380,520);
@@ -427,10 +659,43 @@ public class MainMenuSecondScreen implements Screen {
         cloudImageBottom6.setPosition(1280,0);
 
 
+        profileButton.setPosition((float) (GAME_WIDTH*0.425), (GAME_HEIGHT-profileButton.getHeight())-20);
+        missionsButton.setPosition((float) (GAME_WIDTH*0.425)+180, (GAME_HEIGHT-missionsButton.getHeight())-20);
+        shopButton.setPosition((float) (GAME_WIDTH*0.425)+180*2, (GAME_HEIGHT-shopButton.getHeight())-20);
+        configurationButton.setPosition((float) (GAME_WIDTH*0.425)+180*3, (GAME_HEIGHT-configurationButton.getHeight())-20);
+        profileLayoutImage.setPosition(0,720-150-20+9);
+
+        playGameButton.setPosition(0,GAME_HEIGHT-playGameButton.getHeight()-20-profileLayoutImage.getHeight()-20);
+        initButton.setPosition(0,GAME_HEIGHT-initButton.getHeight()-20-profileLayoutImage.getHeight() - playGameButton.getHeight()-20-20);
+        exitButton.setPosition(0,GAME_HEIGHT-exitButton.getHeight()-20-profileLayoutImage.getHeight()-playGameButton.getHeight()-initButton.getHeight()-20-20-20);
+
+        gameLogoImage.setScale(0.35f,0.35f);
+        gameLogoImage.setPosition(-17,((GAME_HEIGHT-gameLogoImage.getHeight()*gameLogoImage.getScaleY()))-20-profileLayoutImage.getHeight()-playGameButton.getHeight()-initButton.getHeight()-20-exitButton.getHeight()-20-20-150+100);
+
+
+        profileMolding.setPosition(21,GAME_HEIGHT-profileMolding.getHeight()-21+9);
+
+        levelInfo.setPosition(21+profileMolding.getWidth()+10,GAME_HEIGHT-levelInfo.getHeight()-30+6);
+        levelInfo.setColor(Color.RED);
+        nicknameInfo.setPosition(levelInfo.getX(),levelInfo.getY()-23);
+        titleInfo.setPosition(nicknameInfo.getX(),nicknameInfo.getY()-23);
+        ryousInfo.setPosition(titleInfo.getX(),titleInfo.getY()-23);
+        moonCoinInfo.setPosition(ryousInfo.getX(),ryousInfo.getY()-23);
+
+
+        profileIconImage.setPosition(profileMolding.getX()-8,profileMolding.getY()-5);
+        profileIconImage.setScale(1.1f);
+
+        miniScreen.getRankedButton().setPosition(301,187);
+        miniScreen.getNormalButton().setPosition(630,175);
+        miniScreen.getTrainingButton().setPosition(920,187);
+
+
     }
     private void addActorsToStage(){
         animationOrganizer.addActor(maskImage);
-        animationOrganizer.addActor(animatedBackgroundMainMenu);
+        animationOrganizer.addActor(backgroundImage);
+        animationOrganizer.addActor(gifBackgroundOrganizer);
         animationOrganizer.addActor(cloudImageBottom1);
         animationOrganizer.addActor(cloudImageBottom2);
         animationOrganizer.addActor(cloudImageBottom3);
@@ -442,8 +707,10 @@ public class MainMenuSecondScreen implements Screen {
         animationOrganizer.addActor(cloudImageTop3);
         animationOrganizer.addActor(cloudImageTop4);
         animationOrganizer.addActor(gameLogoImage);
-        animationOrganizer.addActor(charMenuImageIdle);
+        charOrganizer.addActor(charMenuImageIdle);
+        animationOrganizer.addActor(charOrganizer);
         animationOrganizer.addActor(menuItemsOrganizer);
+        animationOrganizer.addActor(selectModeOrganizer);
 
         menuStage.addActor(animationOrganizer);
     }

@@ -1,3 +1,4 @@
+
 buildscript {
 
 
@@ -42,6 +43,8 @@ allprojects {
 
 project(":desktop") {
     apply plugin: "java-library"
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 
 
     dependencies {
@@ -59,6 +62,8 @@ project(":desktop") {
 
 project(":core") {
     apply plugin: "java-library"
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 
 
     dependencies {
@@ -71,12 +76,30 @@ project(":core") {
         api "com.badlogicgames.ashley:ashley:$ashleyVersion"
         api "com.badlogicgames.gdx:gdx-ai:$aiVersion"
         implementation 'org.mini2Dx:universal-tween-engine:6.3.3'
-
-
-
+        /*implementation 'com.github.czyzby:gdx-websocket:1.9.1.9.6'
+        implementation 'com.github.MrStahlfelge.gdx-websockets:core:1.9.10.3'
+        implementation 'io.netty:netty-all:4.1.63.Final'
+        implementation 'com.esotericsoftware:kryonet:2.22.0-RC1'*/
+        implementation 'com.google.code.gson:gson:2.10.1'
+        implementation 'org.java-websocket:Java-WebSocket:1.5.4'
+        implementation 'org.projectlombok:lombok:1.16.6'
+        implementation 'com.badlogicgames.gdx:gdx-tools:1.12.0'
 
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

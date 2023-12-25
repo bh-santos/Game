@@ -6,15 +6,15 @@ import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.FocusListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
+import static com.nnw.game.ui.EmailValidator.isValidEmail;
 import static com.nnw.game.util.AssetNames.Fonts.LOGIN_WINDOW_FONT;
 import static com.nnw.game.util.AssetNames.Textures.CLOUD_MENU;
 
@@ -38,6 +38,19 @@ public class CreateAccountWindow extends Table {
 
     private TextField confirmEmail;
     private TextField birthday;
+    private FreeTypeFontGenerator errorMessageTextFieldGenerator;
+    private FreeTypeFontGenerator.FreeTypeFontParameter errorMessageTextFieldParameter;
+    private BitmapFont errorMessageTextFieldFont;
+    private Label.LabelStyle errorMessageTextFieldStyle;
+    private Label errorMessageTextFieldEmailLabel;
+
+    private Label errorMessageTextFieldConfirmEmailLabel;
+
+    public Label getErrorMessageTextFieldEmailLabel() {
+        return errorMessageTextFieldEmailLabel;
+    }
+
+    private boolean emailIsValid;
 
     public TextField getUserName() {
         return userName;
@@ -70,14 +83,14 @@ public class CreateAccountWindow extends Table {
 
 
 
-    public CreateAccountWindow(){
+    public CreateAccountWindow(Group group){
         initTableConfigurations();
         initWindowBackgroundConfigurations();
         initFontConfigurations();
         initStyleConfigurations();
         initWindowsItems();
         initWindowsItemsConfigurations();
-        addListeners();
+        addListeners(group);
         addItemsToWindow();
     }
 
@@ -94,6 +107,19 @@ public class CreateAccountWindow extends Table {
         fontLoginTextParameter.shadowOffsetX = 2;
         fontLoginTextParameter.shadowOffsetY = 2;
         loginTextFont = fontGeneratorLoginWindow.generateFont(fontLoginTextParameter);
+
+
+        errorMessageTextFieldGenerator = new FreeTypeFontGenerator(Gdx.files.internal(LOGIN_WINDOW_FONT));
+        errorMessageTextFieldParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        errorMessageTextFieldParameter.size = 25;
+        errorMessageTextFieldParameter.color = Color.ORANGE;
+        errorMessageTextFieldParameter.borderColor = Color.ORANGE;
+        errorMessageTextFieldParameter.borderWidth = 0.5f;
+        errorMessageTextFieldParameter.borderStraight =false;
+        errorMessageTextFieldParameter.shadowColor = Color.DARK_GRAY;
+        errorMessageTextFieldParameter.shadowOffsetX = 2;
+        errorMessageTextFieldParameter.shadowOffsetY = 2;
+        errorMessageTextFieldFont = errorMessageTextFieldGenerator.generateFont(errorMessageTextFieldParameter);
     }
 
     private void initTableConfigurations(){
@@ -108,6 +134,11 @@ public class CreateAccountWindow extends Table {
         textFieldStyle.font = loginTextFont;
         textFieldStyle.fontColor = Color.WHITE;
         windowUIConfig.add("text_field",textFieldStyle);
+
+        errorMessageTextFieldStyle = new Label.LabelStyle();
+        errorMessageTextFieldStyle.font = errorMessageTextFieldFont;
+        errorMessageTextFieldStyle.fontColor = Color.RED;
+        windowUIConfig.add("error_message",errorMessageTextFieldStyle);
 
 
         labelStyle = new Label.LabelStyle();
@@ -124,6 +155,8 @@ public class CreateAccountWindow extends Table {
         password = new TextField("",windowUIConfig,"text_field");
         confirmPassword = new TextField("",windowUIConfig,"text_field");
         birthday = new TextField("",windowUIConfig,"text_field");
+        errorMessageTextFieldEmailLabel = new Label("",windowUIConfig,"error_message");
+        errorMessageTextFieldConfirmEmailLabel = new Label("", windowUIConfig,"error_message");
 
     }
 
@@ -147,6 +180,7 @@ public class CreateAccountWindow extends Table {
         confirmPassword.setPasswordCharacter('*');
         birthday.setFocusTraversal(true);
         birthday.setMessageText("yyyy-mm-dd");
+        birthday.setTextFieldListener(new TextFieldListener());
 
     }
     private void initWindowBackgroundConfigurations(){
@@ -191,7 +225,7 @@ public class CreateAccountWindow extends Table {
 
     }
 
-    private void addListeners(){
+    private void addListeners(final Group group){
         userName.addListener(new InputListener(){
             @Override
             public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
@@ -229,20 +263,46 @@ public class CreateAccountWindow extends Table {
             }
         });
 
-        confirmEmail.addListener(new InputListener(){
-            @Override
-            public boolean keyTyped(InputEvent event, char character) {
-                if(!(email.getText().equals(confirmEmail.getText()))){
-                    System.out.println("DIFERENTES");
-                    return false;
 
-                }else{
-                    System.out.println("iguais");
-                    return true;
+
+        email.addListener(new FocusListener() {
+            @Override
+            public void keyboardFocusChanged(FocusEvent event, Actor actor, boolean focused) {
+                if (!focused) {
+                    // Quando o foco é perdido, valide o texto
+                    if (!isValidEmail(email.getText())) {
+                        errorMessageTextFieldEmailLabel.setText("Formato de email inválido.");
+                        errorMessageTextFieldEmailLabel.setPosition(email.getX()+email.getWidth()+450, email.getY()+25);
+                        group.addActor(errorMessageTextFieldEmailLabel);
+                        emailIsValid = false;
+                    }else{
+                        group.removeActor(errorMessageTextFieldEmailLabel);
+                        emailIsValid = true;
+                    }
                 }
             }
         });
+
+        confirmEmail.addListener(new FocusListener() {
+            @Override
+            public void keyboardFocusChanged(FocusEvent event, Actor actor, boolean focused) {
+                if (!focused) {
+                    // Quando o foco é perdido, valide o texto
+                    if (!isValidEmail(confirmEmail.getText())) {
+                        errorMessageTextFieldConfirmEmailLabel.setText("Formato de email inválido.");
+                        errorMessageTextFieldConfirmEmailLabel.setPosition(confirmEmail.getX()+confirmEmail.getWidth()+450, confirmEmail.getY()+25);
+                        group.addActor(errorMessageTextFieldConfirmEmailLabel);
+                        emailIsValid = false;
+                    }else{
+                        group.removeActor(errorMessageTextFieldConfirmEmailLabel);
+                        emailIsValid = true;
+                    }
+                }
+            }
+        });
+
     }
+
 
     public boolean verifyIfTextFieldsIsEmpty(){
         return userName.getText().isEmpty() ||
@@ -271,5 +331,13 @@ public class CreateAccountWindow extends Table {
         loginTextFont.dispose();
         windowUIConfig.dispose();
 
+    }
+
+    public boolean isEmailIsValid() {
+        return emailIsValid;
+    }
+
+    public Label getErrorMessageTextFieldConfirmEmailLabel() {
+        return errorMessageTextFieldConfirmEmailLabel;
     }
 }

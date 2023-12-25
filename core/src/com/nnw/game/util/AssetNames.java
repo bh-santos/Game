@@ -7,7 +7,7 @@ public class AssetNames {
 
         //MENU IMAGES
         public static final String MAIN_MENU_FIRST_SCREEN_BACKGROUND ="backgroundImages/mainMenuOptionalBackground4.gif";
-        public static final String MAIN_MENU_SECOND_SCREEN_BACKGROUND ="backgroundImages/mainMenuOptionalBackground3.png";
+        public static final String MAIN_MENU_SECOND_SCREEN_BACKGROUND ="backgroundImages/mainMenuOptionalBackground.png";
 
 
         public static final String SECONDARY_MENU_BACKGROUND_IMAGE ="backgroundImages/mainMenuOptionalBackground5.gif";
@@ -24,6 +24,27 @@ public class AssetNames {
         public static final String LOGIN_WINDOW2 = "menuItems/loginWindow2.png";
 
         public static final String MAIN_MENU_SECOND_SCREEN_LAYOUT = "backgroundImages/mainMenuSecondScreenLayout.png";
+
+
+        public static final String GENERAL_TOP_BUTTONS = "menuItems/topButtonOption2.png";
+
+        public static final String GENERAL_LEFT_BUTTONS = "menuItems/leftButtonsOption2.png";
+
+        public static final String GENERAL_PROFILE_LAYOUT = "menuItems/profileLayoutOption2.png";
+
+        public static final String GENERAL_PROFILE_MOLD = "menuItems/profileMolding.png";
+
+        //select mode Icon
+
+        public static final String RANKED_MODE_ICON = "menuItems/madaraIcon.png";
+
+        public static final String NORMAL_MODE_ICON = "menuItems/hashiramaIcon.png";
+
+        public static final String TRAINING_MODE_ICON = "menuItems/minatoIcon.png";
+        //select mode Background
+
+        public static final String SELECT_MODE_BACKGROUND = "backgroundImages/mainMenuOptionalBackground6.gif";
+
 
         public static final String MAIN_MENU_CHAR_IDLE = "menuItems/menuCharIdle.png";
 
@@ -45,6 +66,7 @@ public class AssetNames {
 
         public static final String MOUSE_ICON_CLICK = "icons/mouseIcons/mouseIconKunaiClicked.png";
 
+        public static final String PROFILE_IMAGE_ICON = "menuItems/profileImageIcon.png";
         //SCREEN ICON
         public static final String[] ANIMATED_SCREEN_ICON =
                 {"spritesheets/cuttedSkills/sharingan/SHARINGANS_1.png",
@@ -143,8 +165,11 @@ public class AssetNames {
     public static class Fonts{
         public static final String MENU_LOGO_FONT = "fonts/narutoLogo/njNaruto.ttf";
         public static final String MENU_ITEMS_FONT = "fonts/paintyPaint/paintP.TTF";
-
         public static final String LOGIN_WINDOW_FONT = "fonts/geo_sans_light/GeosansLight.ttf";
+
+        public static final String GENERAL_FONT = "fonts/azonix/azonix.otf";
+
+        public static final String GENERAL_FONT_2 = "fonts/a_asian_hiro/aAsianHiro.otf";
 
     }
 

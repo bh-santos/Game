@@ -1,0 +1,63 @@
+{
+  "version": "1.0",
+  "emitters": [
+    {
+      "type": "point",
+      "x": 0,
+      "y": 0,
+      "duration": -1,
+      "minParticleCount": 1,
+      "maxParticleCount": 5,
+      "delay": 0.5,
+      "life": 1.0,
+      "lifeOffset": 0,
+      "xOffsetValue": {
+        "value": 0,
+        "lowMax": 0
+      },
+      "yOffsetValue": {
+        "value": 0,
+        "lowMax": 0
+      },
+      "spawnWidth": 0,
+      "spawnHeight": 0,
+      "spawnShape": "point",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "angle": {
+        "value": 0,
+        "lowMax": 0
+      },
+      "rotation": {
+        "value": 0,
+        "lowMax": 0
+      },
+      "engine": {
+        "delayValue": {
+          "value": 0,
+          "lowMax": 0
+        },
+        "velocityValue": {
+          "value": 200,
+          "lowMax": 0
+        }
+      },
+      "colors": [
+        {
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1,
+            "a": 1
+          },
+          "transparency": {
+            "value": 0.5,
+            "lowMax": 0
+          }
+        }
+      ]
+    }
+  ]
+}

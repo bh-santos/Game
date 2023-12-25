@@ -11,21 +11,24 @@ import com.badlogic.gdx.graphics.Cursor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.*;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.nnw.game.entities.player.GameUser;
+import com.nnw.game.server.GeneralCallback;
 import com.nnw.game.server.LoginCallback;
-import com.nnw.game.server.PingManager;
 import com.nnw.game.util.UIType;
 import lombok.Data;
 
 
-import static com.nnw.game.server.AuthenticationLogin.*;
-import static com.nnw.game.server.CreateAccount.createAccount;
+import static com.nnw.game.server.GameClient.*;
+
+import static com.nnw.game.ui.TextFieldListener.dateIsValid;
 import static com.nnw.game.util.AssetNames.Fonts.*;
 import static com.nnw.game.util.AssetNames.Sounds.*;
 import static com.nnw.game.util.AssetNames.Textures.*;
@@ -73,18 +76,28 @@ public class MainMenuFirstScreen implements Screen {
     private TextButton.TextButtonStyle buttonsStyle;
     private TextButton createButton;
     private TextButton backButton;
-    private Label loginTextSuccess;
+    private Label createAccountTextSuccess;
+    private GameUser gameUser;
+    private String loginCode;
+    private FreeTypeFontGenerator fontGeneratorLoginMessage;
+    private FreeTypeFontGenerator.FreeTypeFontParameter loginMessageFontParameter;
+    private BitmapFont loginMessageFont;
+    private Label.LabelStyle errorMessageStyle;
+    private Label errorMessageLabel;
+    private ShapeRenderer shapeRenderer;
 
 
-    public MainMenuFirstScreen(Game game, UIType type){
+    public MainMenuFirstScreen(Game game, UIType type, GameUser gameUser){
         this.game = game;
         this.uiType=type;
+        this.gameUser=gameUser;
     }
     @Override
     public void show() {
         initStage();
         initAudioSystem();
         initUIConfig();
+        initOrganizers();
         initTextures();
         initImages();
         initAnimations();
@@ -93,7 +106,7 @@ public class MainMenuFirstScreen implements Screen {
         createMenuItems();
         configureMenuItems();
         initMenuButtonsListeners();
-        initOrganizers();
+
         addActorsToStage();
         initTween();
 
@@ -106,6 +119,19 @@ public class MainMenuFirstScreen implements Screen {
         Gdx.gl.glClearColor(255, 255, 255, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+        // Configura a cor da linha (vermelha no exemplo)
+        shapeRenderer.setColor(Color.RED);
+
+        // Desenha a linha ao redor da tela
+        shapeRenderer.line(0, 0, Gdx.graphics.getWidth(), 0); // Linha superior
+        shapeRenderer.line(Gdx.graphics.getWidth(), 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()); // Linha direita
+        shapeRenderer.line(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), 0, Gdx.graphics.getHeight()); // Linha inferior
+        shapeRenderer.line(0, Gdx.graphics.getHeight(), 0, 0); // Linha esquerda
+
+        // Encerra o desenho das linhas
+        shapeRenderer.end();
 
 
         stateTime += delta;
@@ -188,6 +214,7 @@ public class MainMenuFirstScreen implements Screen {
     public void initAnimations(){
         gifAnimation = GifDecoder.loadGIFAnimation(Animation.PlayMode.LOOP,Gdx.files.internal(MAIN_MENU_FIRST_SCREEN_BACKGROUND).read());
         animatedBackgroundMainMenu = new AnimatedBackgroundMainMenu(gifAnimation);
+        shapeRenderer=new ShapeRenderer();
     }
     public void initImages(){
         gameLogoImage = new Image(gameLogoTexture);
@@ -234,6 +261,18 @@ public class MainMenuFirstScreen implements Screen {
         buttonsFontParameter.shadowOffsetY = 2;
         buttonsFont = fontGeneratorButtons.generateFont(buttonsFontParameter);
 
+        fontGeneratorLoginMessage = new FreeTypeFontGenerator(Gdx.files.internal(LOGIN_WINDOW_FONT));
+        loginMessageFontParameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        loginMessageFontParameter.size = 30;
+        loginMessageFontParameter.color = Color.RED;
+        loginMessageFontParameter.borderColor = Color.RED;
+        loginMessageFontParameter.borderWidth = 0.3f;
+        loginMessageFontParameter.shadowColor = Color.BLACK;
+        loginMessageFontParameter.shadowOffsetX = 1;
+        loginMessageFontParameter.shadowOffsetY = 1;
+        loginMessageFont = fontGeneratorLoginMessage.generateFont(loginMessageFontParameter);
+
+
     }
     private void createMenuItems(){
         //criando o texto do logo menu;
@@ -242,12 +281,13 @@ public class MainMenuFirstScreen implements Screen {
         startGameTextButton = new TextButton("START GAME",uiConfigs,"start_game_text");
         //criando tela de login
         loginWindow = new LoginWindow();
-        createAccountWindow = new CreateAccountWindow();
+        createAccountWindow = new CreateAccountWindow(menuItemsOrganizer);
         loginButton = new TextButton("Entrar",uiConfigs,"enter_button");
         createAccountButton = new TextButton("Criar conta", uiConfigs, "enter_button");
         createButton = new TextButton("Criar", uiConfigs, "enter_button");
         backButton = new TextButton("Voltar",uiConfigs,"enter_button");
-        loginTextSuccess = new Label("CONTA CRIADA COM SUCESSO", uiConfigs,"title_text");
+        createAccountTextSuccess = new Label("CONTA CRIADA COM SUCESSO", uiConfigs,"title_text");
+        errorMessageLabel = new Label("Usuário ou senha incorreta.",uiConfigs,"error_message");
     }
 
     private void initStyleConfigurations(){
@@ -267,6 +307,10 @@ public class MainMenuFirstScreen implements Screen {
         buttonsStyle.font = buttonsFont;
         buttonsStyle.overFontColor = Color.DARK_GRAY;
         uiConfigs.add("enter_button",buttonsStyle);
+
+        errorMessageStyle = new Label.LabelStyle();
+        errorMessageStyle.font = loginMessageFont;
+        uiConfigs.add("error_message", errorMessageStyle);
     }
     private void configureMenuItems(){
         gameLogoImage.setScale(0.8f,0.8f);
@@ -278,8 +322,7 @@ public class MainMenuFirstScreen implements Screen {
         createAccountButton.setPosition(640+10,85);
         createButton.setPosition(640-120,85);
         backButton.setPosition(640+10,85);
-        loginTextSuccess.setPosition((GAME_WIDTH-loginTextSuccess.getWidth())/2,(GAME_HEIGHT-loginTextSuccess.getHeight())/2);
-
+        createAccountTextSuccess.setPosition((GAME_WIDTH- createAccountTextSuccess.getWidth())/2,(GAME_HEIGHT- createAccountTextSuccess.getHeight())/2);
 
     }
     private void initMenuButtonsListeners(){
@@ -317,18 +360,42 @@ public class MainMenuFirstScreen implements Screen {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 clickSound.play();
-                login(loginWindow.getLogin().getText(), loginWindow.getPassword().getText(), new LoginCallback() {
-                    @Override
-                    public void onLoginCompleted(boolean isLogged) {
-                        if (isLogged) {
-                            System.out.println("Login bem-sucedido!");
-                            startFadeOutAnimation();
-                        } else {
-                            System.out.println("Falha no login.");
-                        }
-                    }
-                },game);
+                menuItemsOrganizer.removeActor(errorMessageLabel);
+                if(loginWindow.getLogin().getText().equals("") || loginWindow.getPassword().getText().equals("")){
+                    errorMessageLabel.setText("Nenhum campo pode estar vazio.");
+                    errorMessageLabel.setPosition((float) (1280 - errorMessageLabel.getText().length * 13) /2,50);
+                    menuItemsOrganizer.addActor(errorMessageLabel);
+                }else {
+                    login(loginWindow.getLogin().getText(), loginWindow.getPassword().getText(), new LoginCallback() {
 
+                        @Override
+                        public void onLoginSuccess() {
+
+                            requestProfile(new GeneralCallback() {
+                                @Override
+                                public void onRequisitionSuccess() {
+                                    System.out.println("Sucesso.");
+                                    gameUser.viewAllInformation();
+                                }
+
+                                @Override
+                                public void onRequisitionFailed(String message) {
+
+                                }
+                            });
+
+                            startFadeOutAnimation();
+                        }
+
+                        @Override
+                        public void onLoginFailure(String errorMessage) {
+                            errorMessageLabel.setText("Usuário ou senha Incorreta");
+                            errorMessageLabel.setPosition((float) (1280 - errorMessageLabel.getText().length * 11) /2,50);
+                            menuItemsOrganizer.addActor(errorMessageLabel);
+                        }
+                    });
+
+                }
                 return true;
             }
 
@@ -348,6 +415,7 @@ public class MainMenuFirstScreen implements Screen {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 menuItemsOrganizer.removeActor(loginWindow);
+                menuItemsOrganizer.removeActor(errorMessageLabel);
                 menuItemsOrganizer.removeActor(loginButton);
                 menuItemsOrganizer.removeActor(createAccountButton);
                 menuItemsOrganizer.addActor(createAccountWindow);
@@ -370,23 +438,62 @@ public class MainMenuFirstScreen implements Screen {
         createButton.addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                if(createAccountWindow.getConfirmEmail().getText().equalsIgnoreCase(createAccountWindow.getEmail().getText()) &&
-                createAccountWindow.getConfirmPassword().getText().equals(createAccountWindow.getPassword().getText()) &&
-                !createAccountWindow.verifyIfTextFieldsIsEmpty()) {
-                    createAccount(
-                            createAccountWindow.getUserNickName().getText(),
-                            createAccountWindow.getUserName().getText(),
-                            createAccountWindow.getPassword().getText(),
-                            createAccountWindow.getBirthday().getText(),
-                            createAccountWindow.getEmail().getText()
-                    );
-                    menuItemsOrganizer.removeActor(createAccountWindow);
-                    menuItemsOrganizer.removeActor(createButton);
-                    menuItemsOrganizer.addActor(loginTextSuccess);
-                    backButton.setPosition((1280-backButton.getWidth())/2,85);
+                if(createAccountWindow.getConfirmEmail().getText().equalsIgnoreCase(createAccountWindow.getEmail().getText())){
+                    if(createAccountWindow.getConfirmPassword().getText().equals(createAccountWindow.getPassword().getText())){
+                        if(!createAccountWindow.verifyIfTextFieldsIsEmpty()){
+                            if(createAccountWindow.isEmailIsValid()){
+                                if(dateIsValid){
+                                    String date = formatDate(createAccountWindow.getBirthday().getText());
 
-                }else{
-                    System.out.println("Valores Diferentes");
+                                    createAccount(
+                                            createAccountWindow.getUserNickName().getText(),
+                                            createAccountWindow.getUserName().getText(),
+                                            createAccountWindow.getPassword().getText(),
+                                            date,
+                                            createAccountWindow.getEmail().getText(),
+                                            new GeneralCallback() {
+                                                @Override
+                                                public void onRequisitionSuccess() {
+                                                    menuItemsOrganizer.removeActor(createAccountWindow);
+                                                    menuItemsOrganizer.removeActor(createButton);
+                                                    menuItemsOrganizer.addActor(createAccountTextSuccess);
+                                                    backButton.setPosition((1280-backButton.getWidth())/2,85);
+                                                }
+
+                                                @Override
+                                                public void onRequisitionFailed(String message) {
+                                                    errorMessageLabel.setText(message);
+                                                    errorMessageLabel.setPosition((float) (1280 - errorMessageLabel.getText().length * 13) /2,50);
+                                                    menuItemsOrganizer.addActor(errorMessageLabel);
+                                                }
+                                            }
+                                    );
+                                }else{
+                                    errorMessageLabel.setText("Data de nascimento inválida");
+                                    errorMessageLabel.setPosition((float) (1280 - errorMessageLabel.getText().length * 13) /2,50);
+                                    menuItemsOrganizer.addActor(errorMessageLabel);
+                                }
+                            }else{
+                                errorMessageLabel.setText("Formato de email inválido.");
+                                errorMessageLabel.setPosition((float) (1280 - errorMessageLabel.getText().length * 13) /2,50);
+                                menuItemsOrganizer.addActor(errorMessageLabel);
+                            }
+
+                        }else{
+                            errorMessageLabel.setText("Nenhum campo pode estar vazio.");
+                            errorMessageLabel.setPosition((float) (1280 - errorMessageLabel.getText().length * 13) /2,50);
+                            menuItemsOrganizer.addActor(errorMessageLabel);
+                        }
+                    }else {
+                        errorMessageLabel.setText("As senhas digitadas não correspondem.");
+                        errorMessageLabel.setPosition((float) (1280 - errorMessageLabel.getText().length * 13) /2,50);
+                        menuItemsOrganizer.addActor(errorMessageLabel);
+                    }
+
+                }else {
+                    errorMessageLabel.setText("Os emails digitados não correspondem.");
+                    errorMessageLabel.setPosition((float) (1280 - errorMessageLabel.getText().length * 13) /2,50);
+                    menuItemsOrganizer.addActor(errorMessageLabel);
                 }
 
                 return true;
@@ -409,15 +516,23 @@ public class MainMenuFirstScreen implements Screen {
                 createAccountWindow.clearAllTextFields();
                 menuItemsOrganizer.removeActor(createAccountWindow);
                 menuItemsOrganizer.removeActor(createButton);
+                menuItemsOrganizer.removeActor(createAccountWindow.getErrorMessageTextFieldEmailLabel());
+                menuItemsOrganizer.removeActor(createAccountWindow.getErrorMessageTextFieldConfirmEmailLabel());
                 menuItemsOrganizer.removeActor(backButton);
+                menuItemsOrganizer.removeActor(errorMessageLabel);
                 menuItemsOrganizer.addActor(loginWindow);
                 menuItemsOrganizer.addActor(loginButton);
                 menuItemsOrganizer.addActor(createAccountButton);
                 backButton.setPosition(640+10,85);
-                if(menuItemsOrganizer.getChildren().contains(loginTextSuccess,true)) {
-                    menuItemsOrganizer.removeActor(loginTextSuccess);
+                if(menuItemsOrganizer.getChildren().contains(createAccountTextSuccess,true)) {
+                    menuItemsOrganizer.removeActor(createAccountTextSuccess);
                 }
                 return true;
+            }
+
+            @Override
+            public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+                super.enter(event, x, y, pointer, fromActor);
             }
         });
 
@@ -450,11 +565,23 @@ public class MainMenuFirstScreen implements Screen {
                         // Este método será chamado quando a animação terminar
                         if (type == TweenCallback.COMPLETE) {
                             // Execute o código que você quer após a animação
-                            game.setScreen(new MainMenuSecondScreen(game, UIType.MAIN_MENU));
+                            game.setScreen(new MainMenuSecondScreen(game, UIType.MAIN_MENU,gameUser));
                         }
                     }
                 })
                 .start(tweenManager);
 
+    }
+
+    private String formatDate(String inputDate) {
+        // O padrão yyyy-mm-dd
+        String[] parts = inputDate.split("/");
+        if (parts.length == 3) {
+            // Reorganize as partes para o padrão dd/mm/yyyy
+            return parts[2] + "-" + parts[1] + "-" + parts[0];
+        } else {
+            // A data não está no formato esperado, retorne a entrada original
+            return inputDate;
+        }
     }
 }
