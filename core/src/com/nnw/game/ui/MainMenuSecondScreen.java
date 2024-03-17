@@ -582,7 +582,15 @@ public class MainMenuSecondScreen implements Screen {
         });
 
         initButton.addListener(new InputListener(){
-
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                if(miniScreen.isVisible()) {
+                    selectModeOrganizer.removeActor(miniScreen);
+                    animationOrganizer.addActor(charOrganizer);
+                    return true;
+                }
+                return true;
+            }
         });
 
         exitButton.addListener(new InputListener(){
